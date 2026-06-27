@@ -739,7 +739,7 @@ const POV_QUICK_QUESTIONS = [
 
 const GraniteCoach = memo(function GraniteCoach({
   moment,lens, povPlayerLabel,
-}: { moment: MomentData;  lens: string; povPlayerLabel?: string }) {
+}: { moment: MomentData; lens?: string; povPlayerLabel?: string }) {
   const [msgs,     setMsgs]     = useState<CoachMsg[]>([]);
   const [input,    setInput]    = useState("");
   const [loading,  setLoading]  = useState(false);
