@@ -1,0 +1,31 @@
+# Next.js
+node_modules/
+.next/
+out/
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.env.local
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# LangFlow cache
+langflow.db
+
+# Misc
+coverage/
+dist/
+build/
