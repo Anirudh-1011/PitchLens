@@ -1575,7 +1575,11 @@ export default function MomentViewer({
 
         {/* Granite Coach — full height for all lenses */}
         <div style={{ flex:1, display:"flex", flexDirection:"column", minHeight:0 }}>
-          <GraniteCoach moment={activeMoment} lens={lens ?? "tactical"} povPlayerLabel={cameraMode === "pov" ? povPlayerLabel : undefined} />
+        <GraniteCoach
+          moment={activeMoment}
+          lens={lens ?? "tactical"}
+          povPlayerLabel={cameraMode === "pov" ? povPlayerLabel : undefined}
+        />      
         </div>
 
 
