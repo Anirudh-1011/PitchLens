@@ -1,21 +1,21 @@
 from fastapi import FastAPI
-from dotenv import load_dotenv
-import os
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from groq import Groq
+import os
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 load_dotenv()
 
 app = FastAPI()
 
-from groq import Groq
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # For hackathon. Restrict later.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
