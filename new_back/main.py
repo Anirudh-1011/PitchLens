@@ -149,22 +149,31 @@ Your goal is not to describe the event.
 Your goal is to help the user understand football through accurate reasoning while remaining faithful to the selected perspective.
 """
 
+    try:
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
             {
-                "role": "user",
+                "role": "system",
                 "content": prompt
             }
         ],
-        temperature=0.1,
+        temperature=0,
     )
 
     text = response.choices[0].message.content
-    print(prompt)
 
     return {
         "insight": text
+    }
+
+    except Exception as e:
+    import traceback
+
+    print(traceback.format_exc())
+
+    return {
+        "error": str(e)
     }
 @app.get("/health")
 def health():
