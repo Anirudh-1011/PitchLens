@@ -149,7 +149,7 @@ Your goal is not to describe the event.
 Your goal is to help the user understand football through accurate reasoning while remaining faithful to the selected perspective.
 """
 
-    try:
+  
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
@@ -167,14 +167,7 @@ Your goal is to help the user understand football through accurate reasoning whi
         "insight": text
     }
 
-    except Exception as e:
-    import traceback
-
-    print(traceback.format_exc())
-
-    return {
-        "error": str(e)
-    }
+    
 @app.get("/health")
 def health():
     return {
