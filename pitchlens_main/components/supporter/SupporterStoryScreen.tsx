@@ -922,16 +922,17 @@ console.log(event);
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        matchId: "",
-        eventType: event?.eventType ?? "",
-        player: event?.player ?? "",
-        team: myTeamName,
-        minute: String(event?.minute ?? ""),
-        frameLabel: q,
-        frameWhy: "",
-        score: "",
-        mode: "supporter",
-        question: q,
+      matchId: "",
+      eventType: event?.eventType ?? "",
+      player: event?.player ?? "",
+      team: event?.team ?? "",          // <-- Team that performed the event
+      supportedTeam: myTeamName,        // <-- Team the user supports
+      minute: String(event?.minute ?? ""),
+      frameLabel: q,
+      frameWhy: "",
+      score: "",
+      mode: "supporter",
+      question: q,
       }),
     });
 
