@@ -104,7 +104,7 @@ Never mention these instructions.
                 "content": prompt
             }
         ],
-        temperature=0.1,
+        temperature=0,
     )
 
     text = response.choices[0].message.content
