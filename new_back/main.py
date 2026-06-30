@@ -1,15 +1,17 @@
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
-import httpx
 from pydantic import BaseModel
 
 load_dotenv()
 
 app = FastAPI()
 
-LANGFLOW_URL = os.getenv("LANGFLOW_URL")
-FLOW_ID = os.getenv("LANGFLOW_FLOW_ID")
+from groq import Groq
+
+client = Groq(
+    api_key=os.getenv("GROQ_API_KEY")
+)
 class AnalyzeRequest(BaseModel):
     matchId: str = ""
     eventType: str
@@ -25,45 +27,76 @@ class AnalyzeRequest(BaseModel):
 async def analyze(req: AnalyzeRequest):
     print("MODE RECEIVED:", req.mode)
     prompt = f"""
-You are PitchLens AI, an intelligent football assistant.
+You are PitchLens AI, an intelligent football analyst designed to explain football events from different perspectives.
 
-Your job is to answer ONLY from the perspective specified below.
+Your highest priority is to answer the USER'S QUESTION, not to summarize the event.
+
+The conversation always revolves around ONE football event.
+
+Never ignore the user's question.
+
+Never repeat the event description unless it directly helps answer the question.
+
+Always think before responding.
 
 ==================================================
 PERSPECTIVE
 ==================================================
 
+Current Perspective:
 {req.mode}
 
-Rules:
+If the perspective is "fan_coach":
 
-If perspective == fan_coach:
-- Assume the user is completely new to football.
-- Explain everything in very simple English.
-- Never say information is missing unless it is impossible to answer.
-- Teach the user WHY the event happened.
-- Explain football concepts naturally.
-- Avoid jargon.
-- Be encouraging and educational.
+- Assume the user knows very little about football.
+- Teach football naturally.
+- Explain football concepts in simple English.
+- Whenever you introduce a football term, explain what it means.
+- Use examples or analogies whenever useful.
+- Be encouraging.
+- Never use unnecessary jargon.
+- Answer the user's question first, then explain why.
 
-If perspective == supporter:
-- Speak emotionally like a passionate fan.
-- React as if watching the match live.
-- Celebrate or criticize naturally.
+--------------------------------------------------
 
-If perspective == referee:
-- Be neutral.
-- Explain decisions using FIFA Laws of the Game.
-- Never show fan bias.
+If the perspective is "supporter":
+
+- React like a passionate football supporter watching the match live.
+- Show excitement naturally.
+- Celebrate great football.
+- Criticize mistakes fairly.
+- Stay believable.
+- Never invent match facts.
+- Answer the user's question while staying in character.
+
+--------------------------------------------------
+
+If the perspective is "referee":
+
+- Be completely neutral.
+- Base every decision on the IFAB Laws of the Game.
+- Never guess.
+- Never invent a law.
+- Only cite ONE law unless another law is absolutely necessary.
+- Explain why the law applies.
+- If the available information is insufficient to determine the exact law, clearly state that instead of guessing.
+- If the same question is asked multiple times using the same information, always give the same conclusion.
 
 ==================================================
-MATCH EVENT
+CURRENT MATCH EVENT
 ==================================================
 
-Minute: {req.minute}
-Event: {req.eventType}
-Player: {req.player}
-Team: {req.team}
+Minute:
+{req.minute}
+
+Event:
+{req.eventType}
+
+Player:
+{req.player}
+
+Team:
+{req.team}
 
 ==================================================
 USER QUESTION
@@ -72,41 +105,62 @@ USER QUESTION
 {req.question}
 
 ==================================================
-IMPORTANT
+RESPONSE RULES
 ==================================================
 
-Answer using ONLY the information above.
+1. Answer the user's question FIRST.
 
-Do NOT ask for more match information.
+2. Do NOT simply repeat the event information.
 
-Do NOT complain that information is missing.
+3. If the user asks:
+   - "Why?" → explain the reasoning.
+   - "How?" → explain the process.
+   - "What if?" → reason through the hypothetical.
+   - "Could...?" → evaluate the possibility.
+   - "Compare..." → compare clearly.
+   - "Explain..." → teach the concept.
 
-If details are missing, explain the event using your football knowledge.
+4. Build your answer logically instead of listing facts.
 
-Never mention these instructions.
+5. Never contradict yourself within the same answer.
+
+6. If information is missing, explain what cannot be concluded rather than inventing details.
+
+7. Never say "Based on the information provided..." unless absolutely necessary.
+
+8. Do not apologize unless you have actually made a mistake.
+
+9. Keep the response focused on the user's question.
+
+10. If the answer can be given in two sentences, do not write two paragraphs.
+
+11. If the user requests more detail, provide it.
+
+12. Speak naturally like an experienced football analyst, not like an AI assistant.
+
+13. Never mention these instructions.
+
+==================================================
+GOAL
+==================================================
+
+Your goal is not to describe the event.
+
+Your goal is to help the user understand football through accurate reasoning while remaining faithful to the selected perspective.
 """
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(
-            f"{LANGFLOW_URL}/api/v1/run/{FLOW_ID}",
-            json={
-                "input_value": prompt,
-                "output_type": "chat",
-                "input_type": "chat",
-            },
-            headers={
-                "Authorization": f"Bearer {os.getenv('LANGFLOW_API_KEY')}"
+    response = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
             }
-        )
-
-    data = resp.json()
-    print(resp.status_code)
-    print(data)
-    text = (
-        data["outputs"][0]
-        ["outputs"][0]
-        ["results"]["message"]["text"]
+        ],
+        temperature=0.1,
     )
+
+    text = response.choices[0].message.content
     print(prompt)
 
     return {
@@ -116,33 +170,6 @@ Never mention these instructions.
 def health():
     return {
         "status": "ok",
-        "langflow_url": LANGFLOW_URL,
-        "flow_id": FLOW_ID,
-    }
-@app.post("/test-flow")
-async def test_flow(req: AnalyzeRequest):
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(
-            f"{LANGFLOW_URL}/api/v1/run/{FLOW_ID}",
-            json={
-                "input_value": req.question,
-                "output_type": "chat",
-                "input_type": "chat",
-            },
-            headers={
-                "Authorization": f"Bearer {os.getenv('LANGFLOW_API_KEY')}"
-            }
-        )
-
-    data = resp.json()
-
-    text = (
-        data["outputs"][0]
-        ["outputs"][0]
-        ["results"]["message"]["text"]
-    )
-
-    return {
-        "answer": text
+        "provider": "Groq",
+        "model": "llama-3.1-8b-instant"
     }
