@@ -25,6 +25,7 @@ class AnalyzeRequest(BaseModel):
     eventType: str
     player: str
     team: str
+    supportedTeam: str = ""
     minute: str
     frameLabel: str = ""
     frameWhy: str = ""
