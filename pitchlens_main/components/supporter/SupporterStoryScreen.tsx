@@ -914,7 +914,7 @@ function GraniteCompanion({event,myTeamName,oppName,tc,isMyTeamEvent}:{event?:Pi
   ]);
 
   setThinking(true);
-
+console.log(event);
   try {
     const res = await fetch("/api/analyze", {
       method: "POST",
